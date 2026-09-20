@@ -1,26 +1,12 @@
-"""
-Time Complexity Visualizer
----------------------------
-A tiny Flask server with one endpoint: /analyze
-
-Example:
-  http://localhost:8000/analyze?algo=linear_search&step=10&n_max=1000
-
-What it does:
-  1. Reads algo, step, n_max from the URL.
-  2. Runs the chosen algorithm on lists of increasing size (0, step,
-     2*step, ... up to n_max), counting how many steps it takes each time.
-  3. Plots "list size" vs "steps taken" using matplotlib and saves the
-     chart as a PNG file locally (inside static/).
-  4. Reads that PNG back, base64-encodes it, and returns everything as JSON.
-"""
 
 import os
 import base64
 import time
 
 import matplotlib
-matplotlib.use("Agg")  # so matplotlib doesn't try to open a GUI window
+
+matplotlib.use("Agg")     
+
 import matplotlib.pyplot as plt
 
 from flask import Flask, request, jsonify
@@ -35,7 +21,9 @@ os.makedirs(STATIC_DIR, exist_ok=True)
 
 @app.route("/analyze")
 def analyze():
-    # --- 1. Read and validate query parameters ---
+
+# Read and validate query parameters
+
     algo = request.args.get("algo")
     step = request.args.get("step", type=int)
     n_max = request.args.get("n_max", type=int)
@@ -55,7 +43,8 @@ def analyze():
 
     algo_function = ALGORITHMS[algo]
 
-    # --- 2. Run the algorithm for n = 0, step, 2*step, ... up to n_max ---
+# Run the algorithm for n = 0, step, 2*step, ... up to n_max 
+
     sizes = []
     steps_taken = []
 
@@ -68,8 +57,8 @@ def analyze():
         steps_taken.append(steps)
 
         n += step
+# Plot the results and save as a PNG file
 
-    # --- 3. Plot the results and save as a PNG file ---
     plt.figure(figsize=(8, 5))
     plt.plot(sizes, steps_taken, marker="o")
     plt.title(f"Time Complexity: {algo}")
@@ -82,11 +71,13 @@ def analyze():
     plt.savefig(filepath)
     plt.close()
 
-    # --- 4. Read the saved image back and base64-encode it ---
+# Read the saved image back and base64-encode it ---
+
     with open(filepath, "rb") as image_file:
         encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
 
-    # --- 5. Send everything back as JSON ---
+# Send everything back as JSON ---
+
     return jsonify({
         "algo": algo,
         "step": step,
