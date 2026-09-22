@@ -23,7 +23,7 @@ The server runs at `http://localhost:8000`.
 
 Hit the `/analyze` endpoint with three query parameters:
 
-- `algo` — one of: `linear_search`, `binary_search`, `bubble_sort`, `nested_loops`
+- `algo` — one of: `linear_search`, `binary_search`, `bubble_sort`, `nested_loops`, `selection_sort`
 - `step` — how much to increase the input size by each time
 - `n_max` — the largest input size to test (starts from 0)
 
@@ -48,3 +48,4 @@ A JSON object containing:
 - Binary Search — O(log n)
 - Bubble Sort — O(n²)
 - Nested Loops — O(n²)
+- Selection Sort — O(n²)
