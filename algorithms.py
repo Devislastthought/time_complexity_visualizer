@@ -1,11 +1,3 @@
-"""
-Each function below takes a list `arr` and returns how many
-"basic operations" (comparisons/steps) it took to run.
-
-We don't care about the actual search/sort result here — we only
-care about counting steps, so we can see how the count grows as
-the input size (n) grows.
-"""
 
 import random
 
@@ -14,9 +6,9 @@ from queue_ds import Queue
 
 
 def linear_search(arr, target=None):
-    """Look through the list one by one until we find the target."""
+
     if target is None:
-        target = -1  # a value that is never in arr, so it's a worst-case run
+        target = -1
 
     steps = 0
     for item in arr:
@@ -27,10 +19,9 @@ def linear_search(arr, target=None):
 
 
 def binary_search(arr, target=None):
-    """Repeatedly cut the (sorted) list in half looking for the target."""
     arr = sorted(arr)
     if target is None:
-        target = -1  # worst case: never found, loop runs all the way
+        target = -1
 
     steps = 0
     low, high = 0, len(arr) - 1
@@ -47,7 +38,6 @@ def binary_search(arr, target=None):
 
 
 def bubble_sort(arr):
-    """Repeatedly swap neighbouring items that are in the wrong order."""
     arr = arr.copy()
     steps = 0
     n = len(arr)
@@ -60,7 +50,6 @@ def bubble_sort(arr):
 
 
 def nested_loops(arr):
-    """A plain example of O(n^2): a loop inside a loop."""
     steps = 0
     for i in arr:
         for j in arr:
@@ -69,7 +58,6 @@ def nested_loops(arr):
 
 
 def selection_sort(arr):
-    """Repeatedly find the smallest remaining item and move it to the front."""
     arr = arr.copy()
     steps = 0
     n = len(arr)
@@ -84,7 +72,6 @@ def selection_sort(arr):
 
 
 def stack_push_pop(arr):
-    """Push every item onto a Stack, then pop everything back off."""
     steps = 0
     s = Stack()
     for item in arr:
@@ -97,7 +84,6 @@ def stack_push_pop(arr):
 
 
 def queue_enqueue_dequeue(arr):
-    """Enqueue every item into a Queue, then dequeue everything back out."""
     steps = 0
     q = Queue()
     for item in arr:
@@ -109,8 +95,6 @@ def queue_enqueue_dequeue(arr):
     return steps
 
 
-# Every algorithm this server supports lives here. To add a new one,
-# write a function above and add one line here.
 ALGORITHMS = {
     "linear_search": linear_search,
     "binary_search": binary_search,
@@ -122,7 +106,5 @@ ALGORITHMS = {
 }
 
 
-
 def make_random_list(n):
-    """Helper: build a list of n random numbers."""
     return [random.randint(0, n * 10) for _ in range(n)]

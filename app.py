@@ -1,27 +1,10 @@
-"""
-Time Complexity Visualizer
----------------------------
-A tiny Flask server with one endpoint: /analyze
-
-Example:
-  http://localhost:8000/analyze?algo=linear_search&step=10&n_max=1000
-
-What it does:
-  1. Reads algo, step, n_max from the URL.
-  2. Runs the chosen algorithm on lists of increasing size (0, step,
-     2*step, ... up to n_max), counting how many steps it takes each time.
-  3. Plots "list size" vs "steps taken" using matplotlib and saves the
-     chart as a PNG file locally (inside static/).
-  4. Reads that PNG back, base64-encodes it, and returns everything as JSON.
-"""
-
 import os
 import base64
 import time
 import json
 
 import matplotlib
-matplotlib.use("Agg")  # so matplotlib doesn't try to open a GUI window
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from flask import Flask, request, jsonify
@@ -34,13 +17,11 @@ app = Flask(__name__)
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 os.makedirs(STATIC_DIR, exist_ok=True)
 
-# Create the database table (if it doesn't exist yet) as soon as the app starts.
 init_db()
 
 
 @app.route("/analyze")
 def analyze():
-    # --- 1. Read and validate query parameters ---
     algo = request.args.get("algo")
     step = request.args.get("step", type=int)
     n_max = request.args.get("n_max", type=int)
@@ -60,11 +41,6 @@ def analyze():
 
     algo_function = ALGORITHMS[algo]
 
-    # --- 2. Run the algorithm for n = 0, step, 2*step, ... up to n_max ---
-    # We measure REAL running time (a stopwatch), not a theoretical step
-    # count. This is why the resulting chart looks "noisy" or wavy instead
-    # of a perfectly smooth curve — real timing is affected by whatever
-    # else the computer happens to be doing at that exact moment.
     sizes = []
     steps_taken = []
 
@@ -81,7 +57,6 @@ def analyze():
 
         n += step
 
-    # --- 3. Plot the results and save as a PNG file ---
     plt.figure(figsize=(8, 5))
     plt.plot(sizes, steps_taken, marker="o")
     plt.title("Algorithm Time Complexity Visualiser")
@@ -94,11 +69,9 @@ def analyze():
     plt.savefig(filepath)
     plt.close()
 
-    # --- 4. Read the saved image back and base64-encode it ---
     with open(filepath, "rb") as image_file:
         encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
 
-    # --- 5. Send everything back as JSON ---
     return jsonify({
         "algo": algo,
         "step": step,
@@ -112,20 +85,6 @@ def analyze():
 
 @app.route("/save_analysis", methods=["POST"])
 def save_analysis():
-    """
-    Saves an analysis result to the database using SQLAlchemy
-    (no raw SQL written anywhere here).
-
-    Expects a JSON body shaped like the response from /analyze, e.g.:
-    {
-        "algo": "linear_search",
-        "step": 10,
-        "n_max": 100,
-        "sizes": [0, 10, 20, ...],
-        "steps_taken": [0, 10, 20, ...],
-        "image_base64": "iVBORw0KG..."
-    }
-    """
     data = request.get_json(silent=True)
 
     if data is None:
@@ -136,8 +95,6 @@ def save_analysis():
     if missing:
         return jsonify({"error": f"Missing field(s): {missing}"}), 400
 
-    # Build a database row (a Python object) — SQLAlchemy turns this
-    # into the correct SQL for us behind the scenes.
     analysis = Analysis(
         algo=data["algo"],
         step=data["step"],
@@ -151,7 +108,7 @@ def save_analysis():
     try:
         session.add(analysis)
         session.commit()
-        session.refresh(analysis)  # loads the auto-generated id and created_at
+        session.refresh(analysis)
         saved = analysis.to_dict()
     finally:
         session.close()
@@ -164,7 +121,6 @@ def save_analysis():
 
 @app.route("/analyses")
 def list_analyses():
-    """Lists every analysis saved so far, newest first. Handy for testing."""
     session = SessionLocal()
     try:
         rows = session.query(Analysis).order_by(Analysis.id.desc()).all()

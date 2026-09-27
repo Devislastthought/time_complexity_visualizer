@@ -20,7 +20,7 @@ class TestQueue(unittest.TestCase):
         q.enqueue(1)
         q.enqueue(2)
         q.enqueue(3)
-        self.assertEqual(q.dequeue(), 1)  # first in, first out
+        self.assertEqual(q.dequeue(), 1)
         self.assertEqual(q.dequeue(), 2)
         self.assertEqual(q.size(), 1)
 
@@ -28,7 +28,7 @@ class TestQueue(unittest.TestCase):
         q = Queue()
         q.enqueue(10)
         self.assertEqual(q.peek(), 10)
-        self.assertEqual(q.size(), 1)  # still there
+        self.assertEqual(q.size(), 1)
 
     def test_dequeue_from_empty_queue_raises_error(self):
         q = Queue()

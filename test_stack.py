@@ -20,7 +20,7 @@ class TestStack(unittest.TestCase):
         s.push(1)
         s.push(2)
         s.push(3)
-        self.assertEqual(s.pop(), 3)  # last in, first out
+        self.assertEqual(s.pop(), 3)
         self.assertEqual(s.pop(), 2)
         self.assertEqual(s.size(), 1)
 
@@ -28,7 +28,7 @@ class TestStack(unittest.TestCase):
         s = Stack()
         s.push(10)
         self.assertEqual(s.peek(), 10)
-        self.assertEqual(s.size(), 1)  # still there
+        self.assertEqual(s.size(), 1)
 
     def test_pop_from_empty_stack_raises_error(self):
         s = Stack()
