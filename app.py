@@ -9,15 +9,75 @@ import matplotlib.pyplot as plt
 
 from flask import Flask, request, jsonify
 
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    jwt_required,
+    get_jwt_identity,
+)
+
 from algorithms import ALGORITHMS, make_random_list
 from models import Analysis, SessionLocal, init_db
 
 app = Flask(__name__)
 
+# just for school project, normally this secret would not be sitting in the code
+app.config["JWT_SECRET_KEY"] = "super-secret-key-change-later"
+jwt = JWTManager(app)
+
+# fake "database" of users for now, just a plain dict
+# username -> password
+USERS = {
+    "student": "password123",
+}
+
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 os.makedirs(STATIC_DIR, exist_ok=True)
 
 init_db()
+
+
+# these run whenever flask_jwt_extended would normally send back its own
+# 401 message, we swap in our own text instead
+@jwt.unauthorized_loader
+def missing_token_callback(reason):
+    # this fires when there is no Authorization header at all
+    return jsonify({"error": "I don't know you"}), 401
+
+
+@jwt.invalid_token_loader
+def invalid_token_callback(reason):
+    # this fires when a token was sent but it's broken/fake/tampered with
+    return jsonify({"error": "Bye"}), 401
+
+
+@jwt.expired_token_loader
+def expired_token_callback(jwt_header, jwt_payload):
+    # this fires when the token was real but it's too old now
+    return jsonify({"error": "Bye"}), 401
+
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.get_json(silent=True) or {}
+    username = data.get("username")
+    password = data.get("password")
+
+    if username not in USERS or USERS[username] != password:
+        return jsonify({"error": "invalid username or password"}), 401
+
+    access_token = create_access_token(identity=username)
+
+    response = jsonify({
+        "message": "logged in, here's your token",
+        "access_token": access_token,
+    })
+
+    # putting it in the header too (not just the body), as a proper
+    # Bearer token, like the assignment asked for
+    response.headers["Authorization"] = f"Bearer {access_token}"
+
+    return response
 
 
 @app.route("/analyze")
@@ -84,7 +144,11 @@ def analyze():
 
 
 @app.route("/save_analysis", methods=["POST"])
+@jwt_required()
 def save_analysis():
+    # whoever's token this is, just for my own curiosity / could log it later
+    current_user = get_jwt_identity()
+
     data = request.get_json(silent=True)
 
     if data is None:

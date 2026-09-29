@@ -71,16 +71,45 @@ Results from `/analyze` can be saved permanently using SQLAlchemy
 (a SQLite database file, `analysis.db`, is created automatically —
 no raw SQL is written anywhere in this project).
 
-**Save an analysis** — POST the JSON you got back from `/analyze` to `/save_analysis`:
+`/save_analysis` is locked behind a login now (see below), you need a
+token first or it won't let you save anything.
 
-```bash
-curl -X POST -H "Content-Type: application/json" \
-  -d @analyze_result.json \
-  http://localhost:8000/save_analysis
-```
-
-**List everything saved so far:**
+**List everything saved so far** (this one is not locked):
 
 ```
 http://localhost:8000/analyses
 ```
+
+## Auth (login required to save)
+
+`/save_analysis` now needs a JWT token. Without one you get blocked.
+
+**Step 1 — log in to get a token.** There's only one hardcoded user for now
+(`USERS` dict at the top of `app.py`):
+
+```bash
+curl -X POST http://localhost:8000/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "student", "password": "password123"}'
+```
+
+The token comes back in the response body AND in the `Authorization`
+response header (not stuffed into the URL as a query param).
+
+**Step 2 — send that token back as a Bearer token** in the `Authorization`
+header on `/save_analysis`:
+
+```bash
+curl -X POST http://localhost:8000/save_analysis \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer PASTE_YOUR_TOKEN_HERE" \
+  -d @analyze_result.json
+```
+
+**What happens if you skip the token / send a bad one:**
+
+| Situation | Response |
+|---|---|
+| No `Authorization` header at all | `401` — `"I don't know you"` |
+| Token is fake / broken / expired | `401` — `"Bye"` |
+| Token is valid | request goes through as normal |
